@@ -1,7 +1,6 @@
 const inquirer= require('inquirer')
 const logo = require('asciiart-logo')
-const db = require('./db')
-const mysql = require('mysql2');
+const mysql = require('mysql2')
 require('console.table')
 
 // Connect to database
@@ -14,67 +13,149 @@ const connection = mysql.createConnection(
     }
   );
 
-// Create logo of "EMployee Tracker when loading the app"
+// Create logo of "Employee Tracker when loading the app"
 console.log(
     logo({
         name: 'Employee Tracker'
     }).render())
 
+// Create the list that show all options 
 const queries = () => {
     return inquirer.prompt([
         {
             type: 'list',
             name: 'query',
             message: 'What would you like to do',
-            choices: [viewAllDepartment]
+            choices: ['View All Employees',
+                'View ALl Employees by Department',
+                'View All Employees by Manager',
+                'Add Employee',
+                'Remove Employee',
+                'Update Employee',
+                'View All Roles',
+                'Add Role',
+                'Remove Role',
+                'View All Department',
+                'Add Department',
+                'Remove Department',
+                'View Total Utilized Budget by Department',
+                'Quit'
+            ],
         }
     ])
 }
 
+// Handle answers and distribute into different functions
+const init = () => {
+    queries()
+    .then((answer) => {
+        switch(answer.query) {
+            case 'View All Employees':
+                viewAllEmployee();
+                break;
+            case 'View ALl Employees by Department':
+                viewAllEmployeeByDepartment();
+                break;
+            case 'View All Employees by Manager':
+                viewAllEmployeeByManager();
+                break;
+            case 'Add Employee':
+                addEmployee();
+                break;
+            case 'Remove Employee':
+                removeEmployee();
+                break;
+            case 'Update Employee':
+                updateEmployee();
+                break;
+            case 'View All Roles':
+                viewAllRoles();
+                break;
+            case 'Add Role':
+                addRole();
+                break;
+            case 'Remove Role':
+                removeRole();
+                break;
+            case 'View All Department':
+                viewAllDepartment();
+                break;
+            case 'Add Department':
+                addDepartment();
+                break;
+            case 'Remove Department':
+                removeDepartment();
+                break;
+            case 'View Total Utilized Budget by Department':
+                viewBudget();
+                break;
+            case 'Quit':
+                console.log("Thank you for using Employee Tracker!")
+                connection.end();
+        }
+    })
+    .catch((err) => console.error(err))
+}
 
-// const viewAllEmployee = () => {
-//     connection.query(
-//         'SELECT * FROM employee'
-//     )
-// }
-
-const viewAllDepartment = () => {
+// SQL query: View all employees
+const viewAllEmployee = () => {
     connection.query(
-        'SELECT * FROM department;',
-        function(err, results, fields) {
-            return console.table(results)
+        'SELECT employee.id, employee.first_name, employee.last_name, role.title AS role, manager.first_name FROM employee JOIN role ON employee.role_id = role.id JOIN Employee manager ON employee.manager_id = manager.id;',
+        function(err, results) {
+            console.table(results);
+            queries();
         }
     )
 }
 
-// const viewAllRole = () =>{
+// SQL query: View all employees by department
 
-// }
+// SQL query: View all employees by manager
 
-// `What would you like to do? 
-// View All Employees
-// View ALl Employees by Department -> Which department would you like to see employees for? Engineering, Finance, Legal, Sales
-// View All Employees by Manager -> Which employee do you want to see direct reports for? 
-// Add Employee 
-// Remove Employee
-// Update Employee
-// Update Employee  -> Which employee's role do you want to update? -> Which role do you want to assign the selected employee?
-// Update Employee Manager
-// View All Roles
-// Add Role
-// Remove Role
-// VIew All Department
-// Add Department
-// Remove Department
-// View Total Utilized Budget by Department
-// Quit`
-
-
-
-// `add employee -> 
+// SQL query: Add employee
 // What is the employee's first name?
 // What is the employee's last name? 
 // What is the employee's role? 
 // Who is the employee's manager?`
 
-queries();
+
+// SQL query: Remove employee
+
+// SQL query: Update Employee
+
+// SQL query: View all roles
+const viewAllRoles = () => {
+    connection.query(
+        'SELECT role.id, role.title, department.name AS department, role.salary FROM role LEFT JOIN department ON role.department_id = department.id;',
+        function(err, results) {
+            console.table(results);
+            queries();
+        }
+    )
+}
+
+// SQL query: Add role
+
+// SQL query: Remove role
+
+// SQL query: View all departments 
+const viewAllDepartment = () => {
+    connection.query(
+        'SELECT * FROM department;',
+        function(err, results) {
+            console.table(results);
+            queries();
+        }
+    )
+}
+
+// SQL query: Add department
+
+// SQL query: Remove department
+
+// SQL query: View total utilized budget by department
+
+
+
+
+init()
